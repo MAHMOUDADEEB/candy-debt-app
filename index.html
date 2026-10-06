@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام ذمم موزع السكاكر</title>
+    <!-- مكتبة الأيقونات FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- خط عربي عصري Cairo -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #0f172a;
+            --border-color: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #f59e0b; /* ذهبي برتقالي أنيق */
+            --primary-hover: #d97706;
+            --accent: #06b6d4; /* تركواز عصري */
+            --success: #10b981;
+            --danger: #ef4444;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding-bottom: 90px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        header h1 {
+            font-size: 1.25rem;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        /* بطاقة ملخص الإحصائيات */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 12px 8px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .stat-card .val {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .text-danger { color: var(--danger); }
+        .text-success { color: var(--success); }
+        .text-primary { color: var(--primary); }
+
+        /* أزرار الإجراءات العلوية */
+        .actions-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: #0f172a;
+            border: none;
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.2s;
+            flex: 1;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-card);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        /* زر فلترة الذمم */
+        .filter-debt-btn {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            width: 100%;
+            padding: 10px;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            transition: 0.2s;
+        }
+
+        .filter-debt-btn.active-filter {
+            background-color: rgba(239, 68, 68, 0.15);
+            border-color: var(--danger);
+            color: var(--danger);
+            font-weight: 700;
+        }
+
+        /* صندوق البحث */
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 12px 15px 12px 40px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        /* قائمة المحلات */
+        .section-title {
+            font-size: 1rem;
+            margin-bottom: 12px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shops-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .shop-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 15px;
+            position: relative;
+            transition: 0.2s;
+        }
+
+        .shop-card.fully-paid {
+            border-right: 4px solid var(--success);
+        }
+
+        .shop-card.has-debt {
+            border-right: 4px solid var(--danger);
+        }
+
+        .shop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .shop-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .shop-phone {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            direction: ltr;
+            text-align: right;
+        }
+
+        .shop-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            background: rgba(15, 23, 42, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .shop-details span {
+            color: var(--text-muted);
+        }
+
+        .shop-details strong {
+            color: var(--text-main);
+        }
+
+        /* أزرار التحكم بالبطاقة */
+        .shop-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .card-btn {
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex: 1;
+            justify-content: center;
+            min-width: 110px;
+        }
+
+        .card-btn.pay {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .card-btn.add-new-debt {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: var(--primary);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .card-btn.whatsapp {
+            background-color: rgba(37, 211, 102, 0.15);
+            color: #25d366;
+            border-color: rgba(37, 211, 102, 0.3);
+        }
+
+        .card-btn.delete {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.3);
+            max-width: 40px;
+            min-width: 40px;
+        }
+
+        /* نافذة منبثقة (Modal) */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            width: 100%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 20px;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            width: 100%;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 12px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+        }
+
+        /* الحركات وسجل السداد */
+        .transactions-list {
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 10px;
+            background: var(--bg-main);
+        }
+
+        .tx-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.85rem;
+        }
+
+        .tx-item:last-child {
+            border-bottom: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: var(--border-color);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fa-solid fa-candy-cane"></i> نظام ذمم موزع السكاكر</h1>
+        <p>إدارة المحلات الثابتة، الحسابات، والدفعات الميدانية</p>
+    </header>
+
+    <div class="container">
+        <!-- الملخص المالي -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>إجمالي الذمم</h3>
+                <div class="val text-danger" id="totalDebt">0.00 د.أ</div>
+            </div>
+            <div class="stat-card">
+                <h3>تم تحصيله</h3>
+                <div class="val text-success" id="totalPaid">0.00 د.أ</div>
+            </div>
+            <div class="stat-card">
+                <h3>عدد المحلات</h3>
+                <div class="val text-primary" id="totalShops">0</div>
+            </div>
+        </div>
+
+        <!-- أزرار العمليات -->
+        <div class="actions-bar">
+            <button class="btn" onclick="openAddShopModal()">
+                <i class="fa-solid fa-store"></i> إضافة محل جديد
+            </button>
+            <button class="btn btn-secondary" onclick="exportData()">
+                <i class="fa-solid fa-download"></i> نسخه احتياطية
+            </button>
+        </div>
+
+        <!-- زر تصفية المحلات التي عليها ذمم فقط -->
+        <button class="filter-debt-btn" id="filterDebtBtn" onclick="toggleDebtFilter()">
+            <i class="fa-solid fa-filter"></i> عرض المحلات التي عليها ذمم فقط
+        </button>
+
+        <!-- البحث -->
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="ابحث باسم المحل أو رقم الهاتف..." oninput="renderShops()">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+
+        <!-- القائمة -->
+        <div class="section-title">
+            <span>قائمة المحلات الثابتة والذمم</span>
+            <span id="shopsCountText">0 محل</span>
+        </div>
+
+        <div class="shops-list" id="shopsListContainer">
+            <!-- سيتم تعبئتها تلقائياً عبر JavaScript -->
+        </div>
+    </div>
+
+    <!-- نافذة إضافة محل جديد -->
+    <div class="modal" id="addShopModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>إضافة محل تجاري جديد للقائمة</h2>
+                <button class="close-modal" onclick="closeModal('addShopModal')">&times;</button>
+            </div>
+            <form id="addShopForm" onsubmit="saveNewShop(event)">
+                <div class="form-group">
+                    <label>اسم المحل التجاري</label>
+                    <input type="text" id="shopName" class="form-control" required placeholder="مثال: سكاكر النور">
+                </div>
+                <div class="form-group">
+                    <label>اسم المسؤول / البائع</label>
+                    <input type="text" id="ownerName" class="form-control" placeholder="مثال: أبو أحمد">
+                </div>
+                <div class="form-group">
+                    <label>رقم الهاتف (لإرسال كشف الحساب واتساب)</label>
+                    <input type="tel" id="shopPhone" class="form-control" placeholder="07xxxxxxxx">
+                </div>
+                <div class="form-group">
+                    <label>قيمة الذمم / الدين الحالي (د.أ)</label>
+                    <input type="number" step="0.01" id="shopDebt" class="form-control" required value="0" placeholder="0.00">
+                </div>
+                <button type="submit" class="btn" style="width: 100%; margin-top: 10px;">حفظ المحل في القائمة</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- نافذة تسجيل سداد / دفعة -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="paymentModalTitle">تسجيل دفعة سداد</h2>
+                <button class="close-modal" onclick="closeModal('paymentModal')">&times;</button>
+            </div>
+            <form id="paymentForm" onsubmit="savePayment(event)">
+                <input type="hidden" id="paymentShopId">
+                <div class="form-group">
+                    <label>الدين الحالي على المحل</label>
+                    <input type="text" id="currentDebtDisplay" class="form-control" disabled style="color: var(--danger); font-weight: bold;">
+                </div>
+                <div class="form-group">
+                    <label>قيمة الدفعة المسددة (د.أ)</label>
+                    <input type="number" step="0.01" id="paymentAmount" class="form-control" required placeholder="أدخل المبلغ المسدد">
+                </div>
+                <div class="form-group">
+                    <label>طريقة السداد</label>
+                    <select id="paymentMethod" class="form-control">
+                        <option value="نقدي (كاش)">نقدي (كاش)</option>
+                        <option value="تحويل بنكي / محفظة">تحويل بنكي / محفظة إلكترونية</option>
+                        <option value="شيك بنكي">شيك بنكي</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>ملاحظات (اختياري)</label>
+                    <input type="text" id="paymentNotes" class="form-control" placeholder="رقم الشيك أو تفاصيل إضافية">
+                </div>
+                <button type="submit" class="btn" style="width: 100%; margin-top: 10px; background-color: var(--success); color: white;">تأكيد وتسجيل الدفعة</button>
+            </form>
+
+            <div style="margin-top: 20px;">
+                <label style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; display: block;">سجل الحركات:</label>
+                <div class="transactions-list" id="transactionsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة إضافة بضاعة / دين جديد -->
+    <div class="modal" id="newDebtModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="newDebtModalTitle">إضافة بضاعة / دين جديد</h2>
+                <button class="close-modal" onclick="closeModal('newDebtModal')">&times;</button>
+            </div>
+            <form id="newDebtForm" onsubmit="saveNewDebtTransaction(event)">
+                <input type="hidden" id="newDebtShopId">
+                <div class="form-group">
+                    <label>قيمة البضاعة الجديدة / الدين الإضافي (د.أ)</label>
+                    <input type="number" step="0.01" id="additionalDebtAmount" class="form-control" required placeholder="أدخل المبلغ الإضافي">
+                </div>
+                <div class="form-group">
+                    <label>ملاحظات / نوع البضاعة (اختياري)</label>
+                    <input type="text" id="additionalDebtNotes" class="form-control" placeholder="مثال: فاتورة سكاكر جديدة أثناء الجولة">
+                </div>
+                <button type="submit" class="btn" style="width: 100%; margin-top: 10px; background-color: var(--primary); color: #0f172a;">إضافة الدين للحساب</button>
+            </form>
+
+            <div style="margin-top: 20px;">
+                <label style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; display: block;">سجل الحركات:</label>
+                <div class="transactions-list" id="newDebtTransactionsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // قاعدة البيانات المحلية (تبقى محفوظة دائماً على جهازك)
+        let shops = JSON.parse(localStorage.getItem('candy_shops_debt_v4')) || [];
+        let onlyDebtFilterActive = false; // متغير لتتبع حالة تصفية الذمم
+
+        // حفظ البيانات
+        function saveData() {
+            localStorage.setItem('candy_shops_debt_v4', JSON.stringify(shops));
+            renderShops();
+            updateStats();
+        }
+
+        // تحديث الإحصائيات
+        function updateStats() {
+            let totalDebt = 0;
+            let totalPaid = 0;
+
+            shops.forEach(shop => {
+                totalDebt += shop.debt;
+                if(shop.transactions) {
+                    shop.transactions.forEach(tx => {
+                        if(tx.type === 'سداد') totalPaid += tx.amount;
+                    });
+                }
+            });
+
+            document.getElementById('totalDebt').innerText = totalDebt.toFixed(2) + ' د.أ';
+            document.getElementById('totalPaid').innerText = totalPaid.toFixed(2) + ' د.أ';
+            document.getElementById('totalShops').innerText = shops.length;
+            document.getElementById('shopsCountText').innerText = shops.length + ' محل';
+        }
+
+        // تبديل فلتر الذمم
+        function toggleDebtFilter() {
+            onlyDebtFilterActive = !onlyDebtFilterActive;
+            const btn = document.getElementById('filterDebtBtn');
+            
+            if (onlyDebtFilterActive) {
+                btn.classList.add('active-filter');
+                btn.innerHTML = `<i class="fa-solid fa-filter-circle-xmark"></i> إيقاف الفلتر (عرض كل المحلات)`;
+            } else {
+                btn.classList.remove('active-filter');
+                btn.innerHTML = `<i class="fa-solid fa-filter"></i> عرض المحلات التي عليها ذمم فقط`;
+            }
+            renderShops();
+        }
+
+        // عرض المحلات
+        function renderShops() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const container = document.getElementById('shopsListContainer');
+            
+            let filteredShops = shops.filter(shop => {
+                const matchesSearch = shop.name.toLowerCase().includes(search) || 
+                                      shop.phone.includes(search) ||
+                                      (shop.owner && shop.owner.toLowerCase().includes(search));
+                
+                if (onlyDebtFilterActive) {
+                    return matchesSearch && shop.debt > 0;
+                }
+                return matchesSearch;
+            });
+
+            if (filteredShops.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-store-slash"></i>
+                        <p>${onlyDebtFilterActive ? 'لا توجد محلات عليها ذمم حالياً' : 'لا توجد محلات مسجلة حالياً أو مطابقة للبحث'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredShops.map(shop => {
+                const isPaid = shop.debt <= 0;
+                
+                return `
+                    <div class="shop-card ${isPaid ? 'fully-paid' : 'has-debt'}">
+                        <div class="shop-header">
+                            <div>
+                                <div class="shop-name">${shop.name}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">المسؤول: ${shop.owner || 'غير محدد'}</div>
+                            </div>
+                            <div class="shop-phone">${shop.phone || 'بدون رقم'}</div>
+                        </div>
+
+                        <div class="shop-details">
+                            <div><span>الذمة الحالية:</span><br><strong>${shop.debt.toFixed(2)} د.أ</strong></div>
+                            <div><span>حالة الحساب:</span><br><strong class="${isPaid ? 'text-success' : 'text-danger'}">${isPaid ? 'مسدد بالكامل ✓' : 'يوجد ذمة'}</strong></div>
+                        </div>
+
+                        <div class="shop-actions">
+                            ${!isPaid ? `
+                                <button class="card-btn pay" onclick="openPaymentModal('${shop.id}')">
+                                    <i class="fa-solid fa-hand-holding-dollar"></i> تسجيل دفعة
+                                </button>
+                            ` : ''}
+                            <button class="card-btn add-new-debt" onclick="openNewDebtModal('${shop.id}')">
+                                <i class="fa-solid fa-plus-circle"></i> إضافة بضاعة
+                            </button>
+                            <button class="card-btn whatsapp" onclick="sendWhatsApp('${shop.id}')">
+                                <i class="fa-brands fa-whatsapp"></i> واتساب
+                            </button>
+                            <button class="card-btn delete" onclick="deleteShop('${shop.id}')" title="حذف المحل">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // إدارة النوافذ المنبثقة
+        function openAddShopModal() {
+            document.getElementById('addShopForm').reset();
+            document.getElementById('addShopModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // حفظ محل جديد وثبته في القائمة
+        function saveNewShop(e) {
+            e.preventDefault();
+            const name = document.getElementById('shopName').value;
+            const owner = document.getElementById('ownerName').value;
+            const phone = document.getElementById('shopPhone').value;
+            const debt = parseFloat(document.getElementById('shopDebt').value) || 0;
+
+            const newShop = {
+                id: Date.now().toString(),
+                name,
+                owner,
+                phone,
+                debt,
+                transactions: debt > 0 ? [{
+                    date: new Date().toLocaleString('ar-JO'),
+                    type: 'دين جديد',
+                    amount: debt,
+                    method: 'افتتاحي',
+                    notes: 'رصيد سابق / بضاعة افتتاحية'
+                }] : []
+            };
+
+            shops.push(newShop);
+            saveData();
+            closeModal('addShopModal');
+        }
+
+        // فتح نافذة الدفعات
+        function openPaymentModal(shopId) {
+            const shop = shops.find(s => s.id === shopId);
+            if(!shop) return;
+
+            document.getElementById('paymentShopId').value = shop.id;
+            document.getElementById('currentDebtDisplay').value = shop.debt.toFixed(2) + ' د.أ';
+            document.getElementById('paymentAmount').value = '';
+            document.getElementById('paymentNotes').value = '';
+            document.getElementById('paymentModalTitle').innerText = `تسجيل دفعة لـ: ${shop.name}`;
+
+            renderTransactionsList(shop, 'transactionsList');
+            document.getElementById('paymentModal').classList.add('active');
+        }
+
+        // حفظ دفعة السداد
+        function savePayment(e) {
+            e.preventDefault();
+            const shopId = document.getElementById('paymentShopId').value;
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const method = document.getElementById('paymentMethod').value;
+            const notes = document.getElementById('paymentNotes').value;
+
+            const shop = shops.find(s => s.id === shopId);
+            if(!shop) return;
+
+            if(amount <= 0) {
+                alert('يرجى إدخال مبلغ صحيح');
+                return;
+            }
+
+            shop.debt = Math.max(0, shop.debt - amount);
+
+            if(!shop.transactions) shop.transactions = [];
+            shop.transactions.push({
+                date: new Date().toLocaleString('ar-JO'),
+                type: 'سداد',
+                amount: amount,
+                method: method,
+                notes: notes || 'دفعة سداد نقدية/حوالة'
+            });
+
+            saveData();
+            closeModal('paymentModal');
+        }
+
+        // فتح نافذة إضافة بضاعة جديدة (تعمل سواء كان على المحل دين أو مسدد)
+        function openNewDebtModal(shopId) {
+            const shop = shops.find(s => s.id === shopId);
+            if(!shop) return;
+
+            document.getElementById('newDebtShopId').value = shop.id;
+            document.getElementById('additionalDebtAmount').value = '';
+            document.getElementById('additionalDebtNotes').value = '';
+            document.getElementById('newDebtModalTitle').innerText = `إضافة بضاعة جديدة لـ: ${shop.name}`;
+
+            renderTransactionsList(shop, 'newDebtTransactionsList');
+            document.getElementById('newDebtModal').classList.add('active');
+        }
+
+        // حفظ بضاعة جديدة وإضافتها للذمة الحالية
+        function saveNewDebtTransaction(e) {
+            e.preventDefault();
+            const shopId = document.getElementById('newDebtShopId').value;
+            const amount = parseFloat(document.getElementById('additionalDebtAmount').value);
+            const notes = document.getElementById('additionalDebtNotes').value;
+
+            const shop = shops.find(s => s.id === shopId);
+            if(!shop) return;
+
+            if(amount <= 0) {
+                alert('يرجى إدخال مبلغ صحيح');
+                return;
+            }
+
+            shop.debt += amount;
+
+            if(!shop.transactions) shop.transactions = [];
+            shop.transactions.push({
+                date: new Date().toLocaleString('ar-JO'),
+                type: 'دين جديد',
+                amount: amount,
+                method: 'بضاعة جديدة',
+                notes: notes || 'فاتورة سكاكر جديدة'
+            });
+
+            saveData();
+            closeModal('newDebtModal');
+        }
+
+        // عرض سجل الحركات المشترك
+        function renderTransactionsList(shop, containerId) {
+            const txContainer = document.getElementById(containerId);
+            if(!shop.transactions || shop.transactions.length === 0) {
+                txContainer.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:0.8rem;">لا توجد حركات مسجلة</p>';
+            } else {
+                txContainer.innerHTML = shop.transactions.slice().reverse().map(tx => `
+                    <div class="tx-item">
+                        <div>
+                            <strong>${tx.type}</strong> (${tx.method})<br>
+                            <span style="color:var(--text-muted); font-size:0.75rem;">${tx.date}</span>
+                        </div>
+                        <div style="font-weight:bold; color: ${tx.type === 'سداد' ? 'var(--success)' : 'var(--danger)'}">
+                            ${tx.type === 'سداد' ? '-' : '+'}${tx.amount.toFixed(2)} د.أ
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // إرسال كشف الحساب واتساب (تم تصحيح مفتاح الأردن إلى 962 بدلاً من 960)
+        function sendWhatsApp(shopId) {
+            const shop = shops.find(s => s.id === shopId);
+            if(!shop) return;
+
+            let phone = shop.phone.trim();
+            if(!phone) {
+                alert('هذا المحل لا يملك رقم هاتف مسجل!');
+                return;
+            }
+
+            // تنظيف الرقم من أي مسافات أو رموز زائدة
+            phone = phone.replace(/\D/g, '');
+
+            // إذا كان الرقم يبدأ بـ 0 نحذف الصفر ونضيف مفتاح الأردن الصحيح 962
+            if(phone.startsWith('0')) {
+                phone = '962' + phone.substring(1);
+            } 
+            // إذا كان المدخل يبدأ بـ 7 مباشرة بدون صفر نضيف 962 في البداية
+            else if(phone.length === 9 && phone.startsWith('7')) {
+                phone = '962' + phone;
+            }
+            // تصحيح أي مفتاح قديم خاطئ يبدأ بـ 960 إلى 962
+            else if(phone.startsWith('960')) {
+                phone = '962' + phone.substring(3);
+            }
+
+            let text = `*مرحباً بك عزيزي (${shop.name})* 🍬\n`;
+            text += `إليك كشف حساب الذمم الخاص بك:\n`;
+            text += `--------------------------\n`;
+            text += `💰 *إجمالي الذمة الحالية المتبقية:* *${shop.debt.toFixed(2)} د.أ*\n`;
+            text += `--------------------------\n`;
+            text += `شكراً لتعاونكم المستمر معنا في توزيع السكاكر والمواد الاستهلاكية! 🍭`;
+
+            const encodedText = encodeURIComponent(text);
+            window.open(`https://wa.me/${phone}?text=${encodedText}`, '_blank');
+        }
+
+        // حذف محل
+        function deleteShop(shopId) {
+            if(confirm('هل أنت متأكد من حذف هذا المحل وجميع بياناته؟')) {
+                shops = shops.filter(s => s.id !== shopId);
+                saveData();
+            }
+        }
+
+        // تصدير البيانات (نسخة احتياطية)
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(shops));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `candy_debt_backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        // التهيئة عند التشغيل
+        updateStats();
+        renderShops();
+    </script>
+</body>
+</html>
